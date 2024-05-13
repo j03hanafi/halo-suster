@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"github.com/j03hanafi/halo-suster/internal"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
-	time.Sleep(5 * time.Second)
+	internal.Run()
 }

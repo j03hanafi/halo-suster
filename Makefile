@@ -9,7 +9,7 @@ DB_PASSWORD := password
 DB_HOST := localhost
 DB_PORT := 5432
 DB_NAME := halo-suster
-DB_PARAMS := sslmode=disable
+DB_PARAM := sslmode=disable
 
 
 # ==================================================================================== #
@@ -120,37 +120,37 @@ migrate/create:
 .PHONY: migrate/up
 migrate/up:
 	go run -tags '$(DB_TYPE)' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
- 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAMS)' -path $(PWD)/migrations up $(n)
+ 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAM)' -path $(PWD)/migrations up $(n)
 
 ## migrate/down n=$1: run the down migration
 .PHONY: migrate/down
 migrate/down: confirm
 	go run -tags '$(DB_TYPE)' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
- 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAMS)' -path $(PWD)/migrations down $(n)
+ 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAM)' -path $(PWD)/migrations down $(n)
 
 ## migrate/drop: drop all tables
 .PHONY: migrate/drop
 migrate/drop: confirm
 	go run -tags '$(DB_TYPE)' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
- 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAMS)' -path $(PWD)/migrations drop
+ 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAM)' -path $(PWD)/migrations drop
 
 ## migrate/goto version=$1: migrate to a specific version number
 .PHONY: migrate/goto
 migrate/goto: confirm
 	go run -tags '$(DB_TYPE)' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
- 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAMS)' -path $(PWD)/migrations goto $(version)
+ 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAM)' -path $(PWD)/migrations goto $(version)
 
 ## migrate/force version=$1: force a migration by version
 .PHONY: migrate/force
 migrate/force: confirm
 	go run -tags '$(DB_TYPE)' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
- 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAMS)' -path $(PWD)/migrations force $(version)
+ 		-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAM)' -path $(PWD)/migrations force $(version)
 
 ## migrate/version: print the current migration version
 .PHONY: migrate/version
 migrate/version:
 	go run -tags '$(DB_TYPE)' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
-	 	-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAMS)' -path $(PWD)/migrations version
+	 	-database '$(DB_TYPE)://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?$(DB_PARAM)' -path $(PWD)/migrations version
 
 
 # ==================================================================================== #

@@ -19,6 +19,11 @@
     DB_HOST = "localhost"
     DB_PORT = 5432
     DB_NAME = "halo-suster"
-    DB_PARAMS = ["sslmode=disable"]
+    DB_PARAM = "sslmode=disable
     MAX_CONN_POOL = 12
     MAX_CONN_POOL_PERCENT = 0.9
+[S3]
+    S3_ID = ""
+    S3_SECRET_KEY = ""
+    S3_BUCKET_NAME = ""
+    S3_REGION = ""
