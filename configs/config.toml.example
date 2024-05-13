@@ -1,0 +1,24 @@
+[APP]
+    NAME = "halo-suster"
+    HOST = ""
+    PORT = 8080
+    VERSION = "1.0.0"
+    PREFORK = false
+    CONTEXT_TIMEOUT = 55
+[API]
+    BASE_URL = "/v1"
+    TIMEOUT = 60
+    DEBUG_MODE = true
+    BCRYPT_SALT = 8
+    [API.JWT]
+        EXPIRE = 28800
+        JWT_SECRET = "secret-toml"
+[DB]
+    DB_USERNAME = "postgres"
+    DB_PASSWORD = "password"
+    DB_HOST = "localhost"
+    DB_PORT = 5432
+    DB_NAME = "halo-suster"
+    DB_PARAMS = ["sslmode=disable"]
+    MAX_CONN_POOL = 12
+    MAX_CONN_POOL_PERCENT = 0.9
