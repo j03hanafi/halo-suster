@@ -17,7 +17,7 @@ linters:
     - godot
     - goheader
     - goimports
-    - gomnd
+    - mnd
     - gosec
     - misspell
     - nakedret

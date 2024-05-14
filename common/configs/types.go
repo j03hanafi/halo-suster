@@ -10,11 +10,11 @@ const (
 	jwtSecret  = "JWT_SECRET"
 	bcryptSalt = "BCRYPT_SALT"
 	s3ID       = "S3_ID"
-	s3Secret   = "S3_SECRET_KEY"
+	s3Secret   = "S3_SECRET_KEY" // #nosec G101
 	s3Bucket   = "S3_BUCKET_NAME"
 	s3Region   = "S3_REGION"
 
-	defaultDBName     = "eniqilo-store"
+	defaultDBName     = "halo-suster"
 	defaultDBPort     = 5432
 	defaultDBHost     = "localhost"
 	defaultDBUsername = "postgres"

@@ -30,12 +30,16 @@ func Run() {
 
 	serverTimeout := time.Duration(configs.Get().API.Timeout) * time.Second
 	serverConfig := fiber.Config{
-		AppName:            configs.Get().App.Name,
-		DisableDefaultDate: true,
-		EnablePrintRoutes:  true,
-		JSONDecoder:        sonic.Unmarshal,
-		JSONEncoder:        sonic.Marshal,
-		ReadTimeout:        serverTimeout,
+		AppName:                   configs.Get().App.Name,
+		DisableDefaultDate:        true,
+		EnablePrintRoutes:         true,
+		JSONDecoder:               sonic.Unmarshal,
+		JSONEncoder:               sonic.Marshal,
+		ReadTimeout:               serverTimeout,
+		CaseSensitive:             true,
+		StrictRouting:             true,
+		DisableHeaderNormalizing:  true,
+		DisableDefaultContentType: true,
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			code := http.StatusInternalServerError
 			var e *fiber.Error
@@ -51,7 +55,7 @@ func Run() {
 	}
 
 	app := fiber.New(serverConfig)
-	// setMiddlewares(app)
+	setMiddlewares(app)
 	application.New(app, db, jwtMiddleware())
 	l.Debug("Server Config", zap.Any("Config", app.Config()))
 

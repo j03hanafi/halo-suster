@@ -21,6 +21,8 @@ const (
 
 	samplerFirst      = 100
 	samplerThereafter = 100
+
+	maxGitRevisionLength = 7
 )
 
 func setFileLogger() (zapcore.Core, []zap.Option) {
@@ -56,6 +58,9 @@ func setFileLogger() (zapcore.Core, []zap.Option) {
 		for _, v := range buildInfo.Settings {
 			if v.Key == "vcs.revision" {
 				gitRevision = v.Value
+				if len(gitRevision) > maxGitRevisionLength {
+					gitRevision = gitRevision[:maxGitRevisionLength]
+				}
 				break
 			}
 		}
@@ -64,7 +69,7 @@ func setFileLogger() (zapcore.Core, []zap.Option) {
 
 	core := zapcore.NewCore(encoder, bufferedWriter, logLevel).
 		With([]zap.Field{
-			zap.String("gitRevision", gitRevision[:7]),
+			zap.String("gitRevision", gitRevision),
 			zap.String("goVersion", goVersion),
 		})
 

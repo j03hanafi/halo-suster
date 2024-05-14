@@ -22,31 +22,34 @@ func NewInfoHandler(router fiber.Router, db *pgxpool.Pool) {
 }
 
 func (h infoHandler) Version(c *fiber.Ctx) error {
-	versionInfo := version{
-		Version: configs.Get().App.Version,
-	}
+	versionInfo := versionAcquire()
+	defer versionRelease(versionInfo)
 
-	res := baseResponse{
-		Message: "API version",
-		Data:    versionInfo,
-	}
+	versionInfo.Version = configs.Get().App.Version
+
+	res := baseResponseAcquire()
+	defer baseResponseRelease(res)
+
+	res.Message = "API version"
+	res.Data = versionInfo
 
 	return c.JSON(res)
 }
 
 func (h infoHandler) Health(c *fiber.Ctx) error {
-	res := baseResponse{
-		Message: "API is up and running",
-	}
+	healthInfo := healthAcquire()
+	defer healthRelease(healthInfo)
 
-	dbData := health{
-		Status:     "connected",
-		IdleConns:  h.db.Stat().IdleConns(),
-		TotalConns: h.db.Stat().TotalConns(),
-		MaxConns:   h.db.Stat().MaxConns(),
-	}
+	healthInfo.Status = "connected"
+	healthInfo.IdleConns = h.db.Stat().IdleConns()
+	healthInfo.TotalConns = h.db.Stat().TotalConns()
+	healthInfo.MaxConns = h.db.Stat().MaxConns()
 
-	res.Data = dbData
+	res := baseResponseAcquire()
+	defer baseResponseRelease(res)
+
+	res.Message = "API up and running"
+	res.Data = healthInfo
 
 	return c.JSON(res)
 }

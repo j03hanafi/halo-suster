@@ -76,7 +76,7 @@ test/cover:
 .PHONY: build
 build:
 	# Include additional build steps, like TypeScript, SCSS or Tailwind compilation here...
-	go build -o=./tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+	GOAMD64=v3 go build -o=./tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
 .PHONY: run

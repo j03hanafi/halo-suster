@@ -4,6 +4,7 @@ go 1.22.3
 
 require (
 	github.com/bytedance/sonic v1.11.6
+	github.com/gofiber/contrib/fiberzap/v2 v2.1.3
 	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/jackc/pgx-zap v0.0.0-20221202020421-94b1cb2f889f
 	github.com/jackc/pgx/v5 v5.5.5

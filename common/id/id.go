@@ -15,20 +15,11 @@ var entropyPool = sync.Pool{
 	},
 }
 
-var timePool = sync.Pool{
-	New: func() any {
-		return ulid.Timestamp(time.Now())
-	},
-}
-
 func New() ulid.ULID {
 	entropy := entropyPool.Get().(io.Reader)
 	defer entropyPool.Put(entropy)
 
-	now := timePool.Get().(uint64)
-	defer timePool.Put(now)
-
-	newID, err := ulid.New(now, entropy)
+	newID, err := ulid.New(ulid.Timestamp(time.Now()), entropy)
 	if err != nil {
 		return ulid.ULID{}
 	}

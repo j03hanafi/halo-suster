@@ -35,14 +35,13 @@ func NewPGConn() (*pgxpool.Pool, error) {
 		}
 	}
 
-	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?%s&pool_max_conns=%d",
+	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?%s",
 		configs.Get().DB.Username,
 		configs.Get().DB.Password,
 		configs.Get().DB.Host,
 		configs.Get().DB.Port,
 		configs.Get().DB.Name,
 		configs.Get().DB.Param,
-		maxConnPool,
 	)
 
 	config, err := pgxpool.ParseConfig(url)
@@ -52,6 +51,7 @@ func NewPGConn() (*pgxpool.Pool, error) {
 		)
 		return nil, err
 	}
+	config.MaxConns = int32(maxConnPool)
 
 	poolLog := pgxZap.NewLogger(zap.L())
 	poolTracer := &tracelog.TraceLog{
