@@ -1,15 +1,22 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/gofiber/contrib/fiberzap/v2"
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 
+	"github.com/j03hanafi/halo-suster/common/configs"
 	"github.com/j03hanafi/halo-suster/common/id"
 	"github.com/j03hanafi/halo-suster/common/logger"
+	"github.com/j03hanafi/halo-suster/common/security"
+	"github.com/j03hanafi/halo-suster/internal/domain"
 )
 
 const (
@@ -78,7 +85,22 @@ func loggerMiddleware() fiber.Handler {
 }
 
 func jwtMiddleware() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		return c.Next()
-	}
+	return jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{
+			JWTAlg: jwtware.HS256,
+			Key:    []byte(configs.Get().API.JWT.JWTSecret),
+		},
+		Claims:     &security.AccessTokenClaims{},
+		ContextKey: accessToken,
+		SuccessHandler: func(c *fiber.Ctx) error {
+			claims := c.Locals(accessToken).(*jwt.Token).Claims.(*security.AccessTokenClaims)
+			c.Locals(domain.UserFromToken, claims.User.Role)
+			return c.Next()
+		},
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		},
+	})
 }

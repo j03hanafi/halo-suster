@@ -42,11 +42,20 @@ func Run() {
 		DisableDefaultContentType: true,
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			code := http.StatusInternalServerError
-			var e *fiber.Error
-			if errors.As(err, &e) {
-				code = e.Code
+
+			var fiberErr *fiber.Error
+			var handlerErr ErrorHandler
+
+			switch {
+			case errors.As(err, &handlerErr):
+				code = handlerErr.Status()
+			case errors.As(err, &fiberErr):
+				code = fiberErr.Code
 			}
-			return ctx.Status(code).JSON(e)
+
+			return ctx.Status(code).JSON(fiber.Map{
+				"message": err.Error(),
+			})
 		},
 	}
 

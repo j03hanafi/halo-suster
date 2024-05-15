@@ -13,8 +13,7 @@ func baseResponseAcquire() *baseResponse {
 }
 
 func baseResponseRelease(t *baseResponse) {
-	t.Message = ""
-	t.Data = nil
+	*t = baseResponse{}
 	baseResponsePool.Put(t)
 }
 
@@ -34,7 +33,7 @@ func versionAcquire() *version {
 }
 
 func versionRelease(t *version) {
-	t.Version = ""
+	*t = version{}
 	versionPool.Put(t)
 }
 
@@ -53,10 +52,7 @@ func healthAcquire() *health {
 }
 
 func healthRelease(t *health) {
-	t.Status = ""
-	t.IdleConns = 0
-	t.TotalConns = 0
-	t.MaxConns = 0
+	*t = health{}
 	healthPool.Put(t)
 }
 
