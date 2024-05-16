@@ -3,9 +3,10 @@ package handler
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 	"go.uber.org/zap"
 
 	"github.com/j03hanafi/halo-suster/common/logger"
@@ -26,6 +27,7 @@ func NewUserHandler(router fiber.Router, jwtMiddleware fiber.Handler, userServic
 	authRouter.Post("/it/register", handler.RegisterIT)
 	authRouter.Post("/it/login", handler.LoginIT)
 	authRouter.Post("/nurse/login", handler.LoginNurse)
+	authRouter.Get("/", jwtMiddleware, itStaffAccess, handler.GetUsers)
 
 	nurseRouter := router.Group("/user/nurse", jwtMiddleware, itStaffAccess)
 	nurseRouter.Post("/register", handler.RegisterNurse)
@@ -372,6 +374,64 @@ func (h userHandler) UpdateAccess(c *fiber.Ctx) error {
 	defer baseResponseRelease(res)
 
 	res.Message = "Access updated successfully"
+
+	return c.JSON(res)
+}
+
+func (h userHandler) GetUsers(c *fiber.Ctx) error {
+	callerInfo := "[userHandler.GetUsers]"
+
+	userCtx := c.UserContext()
+	l := logger.FromCtx(userCtx).With(zap.String("caller", callerInfo))
+
+	query := queryParamAcquire()
+	defer queryParamRelease(query)
+
+	if err := c.QueryParser(query); err != nil {
+		l.Error("error parsing query params", zap.Error(err))
+		return errBadRequest{err: err}
+	}
+
+	query.validate()
+
+	filter := domain.FilterUserAcquire()
+	defer domain.FilterUserRelease(filter)
+
+	filter.UserID = query.uid
+	filter.Limit = int(query.Limit)
+	filter.Offset = int(query.Offset)
+	filter.Name = query.Name
+	filter.NIP = query.nip
+	filter.Role = query.Role
+	filter.CreatedAt = query.CreatedAt
+
+	users := domain.UsersAcquire()
+	defer domain.UsersRelease(users)
+
+	users, err := h.userService.GetUsers(userCtx, filter, users)
+	if err != nil {
+		l.Error("error getting users", zap.Error(err))
+		return err
+	}
+
+	res := baseResponseAcquire()
+	defer baseResponseRelease(res)
+
+	res.Message = "Users retrieved successfully"
+
+	usersRes := getUsersResAcquire()
+	defer getUsersResRelease(usersRes)
+
+	for _, user := range users {
+		usersRes = append(usersRes, getUserRes{
+			UserID:    user.ID,
+			NIP:       user.NIP,
+			Name:      user.Name,
+			CreatedAt: user.CreatedAt.Format(time.DateOnly),
+		})
+	}
+
+	res.Data = usersRes
 
 	return c.JSON(res)
 }

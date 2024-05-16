@@ -185,4 +185,24 @@ func (s UserService) UpdateAccess(ctx context.Context, user *domain.User) error 
 	return nil
 }
 
+func (s UserService) GetUsers(
+	ctx context.Context,
+	filter *domain.FilterUser,
+	users domain.Users,
+) (domain.Users, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.contextTimeout)
+	defer cancel()
+
+	callerInfo := "[UserService.GetUsers]"
+	l := logger.FromCtx(ctx).With(zap.String("caller", callerInfo))
+
+	users, err := s.userRepository.GetUsers(ctx, filter, users)
+	if err != nil {
+		l.Error("failed to get users", zap.Error(err))
+		return users, err
+	}
+
+	return users, nil
+}
+
 var _ UserServiceContract = (*UserService)(nil)

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgerrcode"
@@ -66,13 +67,13 @@ func (r UserRepository) GetByNIP(ctx context.Context, dUser *domain.User) (*doma
 
 	selectQuery := `SELECT id, nip, name, password, is_it FROM users WHERE nip = @nip`
 	args := pgx.NamedArgs{"nip": dUser.NIP}
-	query, err := r.db.Query(ctx, selectQuery, args)
+	rows, err := r.db.Query(ctx, selectQuery, args)
 	if err != nil {
 		l.Error("failed to login user", zap.Error(err))
 		return dUser, err
 	}
 
-	*mUser, err = pgx.CollectOneRow(query, pgx.RowToStructByNameLax[user])
+	*mUser, err = pgx.CollectOneRow(rows, pgx.RowToStructByNameLax[user])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return dUser, new(domain.ErrUserNotFound)
@@ -169,6 +170,95 @@ func (r UserRepository) UpdateAccess(ctx context.Context, user *domain.User) err
 	}
 
 	return nil
+}
+
+func (r UserRepository) GetUsers(
+	ctx context.Context,
+	filter *domain.FilterUser,
+	users domain.Users,
+) (domain.Users, error) {
+	callerInfo := "[UserRepository.GetUsers]"
+	l := logger.FromCtx(ctx).With(zap.String("caller", callerInfo))
+
+	conditions, params := r.filterUser(filter)
+	getQuery := `SELECT id, nip, name, created_at FROM users` + conditions
+
+	rows, err := r.db.Query(ctx, getQuery, params)
+	if err != nil {
+		l.Error("failed to get users", zap.Error(err))
+		return users, err
+	}
+
+	dUser := domain.UserAcquire()
+	defer domain.UserRelease(dUser)
+
+	_, err = pgx.ForEachRow(rows, []any{&dUser.ID, &dUser.NIP, &dUser.Name, &dUser.CreatedAt}, func() error {
+		users = append(users, *dUser)
+		return nil
+	})
+	if err != nil {
+		l.Error("failed to get users", zap.Error(err))
+		return users, err
+	}
+
+	return users, nil
+}
+
+func (r UserRepository) filterUser(filter *domain.FilterUser) (string, pgx.NamedArgs) {
+	const totalConditions = 1
+	conditions, params := make([]string, 0, totalConditions), pgx.NamedArgs{}
+
+	if !id.IsZero(filter.UserID) {
+		conditions = append(conditions, "id = @id")
+		params["id"] = filter.UserID
+	}
+
+	if filter.Name != "" {
+		conditions = append(conditions, "name ILIKE @name")
+		params["name"] = "%" + filter.Name + "%"
+	}
+
+	if filter.NIP != "" {
+		conditions = append(conditions, "nip LIKE @nip")
+		params["nip"] = filter.NIP + "%"
+	}
+
+	if filter.Role != "" {
+		conditions = append(conditions, "is_it = @is_it")
+		params["is_it"] = filter.Role == domain.RoleIT
+	}
+
+	order := " ORDER BY created_at DESC"
+	if filter.CreatedAt != "" && (filter.CreatedAt == "asc" || filter.CreatedAt == "desc") {
+		order = " ORDER BY created_at " + filter.CreatedAt
+	}
+
+	const totalLimitOffset = 2
+	limitOffset := make([]string, 0, totalLimitOffset)
+
+	limitOffset = append(limitOffset, "LIMIT @limit")
+	params["limit"] = 5
+	if filter.Limit != 0 {
+		params["limit"] = filter.Limit
+	}
+
+	if filter.Offset != 0 {
+		limitOffset = append(limitOffset, "OFFSET @offset")
+		params["offset"] = filter.Offset
+	}
+
+	queryConditions := ""
+	if len(conditions) > 0 {
+		queryConditions = " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	queryConditions += order
+
+	if len(limitOffset) > 0 {
+		queryConditions += " " + strings.Join(limitOffset, " ")
+	}
+
+	return queryConditions, params
 }
 
 var _ UserRepositoryContract = (*UserRepository)(nil)

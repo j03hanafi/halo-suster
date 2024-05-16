@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 )
 
 var entropyPool = sync.Pool{
@@ -14,6 +14,8 @@ var entropyPool = sync.Pool{
 		return rand.New(rand.NewSource(time.Now().UnixNano())) // #nosec G404
 	},
 }
+
+var zero ulid.ULID
 
 func New() ulid.ULID {
 	entropy := entropyPool.Get().(io.Reader)
@@ -24,4 +26,8 @@ func New() ulid.ULID {
 		return ulid.ULID{}
 	}
 	return newID
+}
+
+func IsZero(id ulid.ULID) bool {
+	return id.Compare(zero) == 0
 }

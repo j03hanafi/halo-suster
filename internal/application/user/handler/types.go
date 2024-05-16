@@ -12,8 +12,10 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 	"go.uber.org/multierr"
+
+	"github.com/j03hanafi/halo-suster/internal/domain"
 )
 
 const (
@@ -364,3 +366,74 @@ func (r updateAccessReq) validate() error {
 
 	return nil
 }
+
+var queryParamPool = sync.Pool{
+	New: func() any {
+		return new(queryParam)
+	},
+}
+
+func queryParamAcquire() *queryParam {
+	return queryParamPool.Get().(*queryParam)
+}
+
+func queryParamRelease(t *queryParam) {
+	*t = queryParam{}
+	queryParamPool.Put(t)
+}
+
+type queryParam struct {
+	UserID    string `query:"userId"`
+	uid       ulid.ULID
+	Limit     uint   `query:"limit"`
+	Offset    uint   `query:"offset"`
+	Name      string `query:"name"`
+	NIP       uint   `query:"nip"`
+	nip       string
+	Role      string `query:"role"`
+	CreatedAt string `query:"createdAt"`
+}
+
+func (r *queryParam) validate() {
+	if r.UserID != "" {
+		r.uid, _ = ulid.Parse(r.UserID)
+	}
+
+	if r.NIP != 0 {
+		r.nip = strconv.Itoa(int(r.NIP))
+	}
+
+	if r.Role != "" && r.Role != domain.RoleIT && r.Role != domain.RoleNurse {
+		r.Role = ""
+	}
+
+	if r.CreatedAt != "" && r.CreatedAt != "asc" && r.CreatedAt != "desc" {
+		r.CreatedAt = ""
+	}
+}
+
+type getUserRes struct {
+	UserID    ulid.ULID `json:"userId"`
+	NIP       string    `json:"nip"`
+	Name      string    `json:"name"`
+	CreatedAt string    `json:"createdAt"`
+}
+
+const usersInitCap = 5
+
+var getUsersResPool = sync.Pool{
+	New: func() any {
+		return make(getUsersRes, 0, usersInitCap)
+	},
+}
+
+func getUsersResAcquire() getUsersRes {
+	return getUsersResPool.Get().(getUsersRes)
+}
+
+func getUsersResRelease(t getUsersRes) {
+	t = t[:0]
+	getUsersResPool.Put(t) // nolint:staticcheck
+}
+
+type getUsersRes []getUserRes

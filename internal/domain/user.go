@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 )
 
 const (
-	RoleIT        = "IT"
-	RoleNurse     = "Nurse"
+	RoleIT        = "it"
+	RoleNurse     = "nurse"
 	UserFromToken = "loggedInUser"
 )
 
@@ -38,6 +38,25 @@ type User struct {
 	ImgURL    string
 	CreatedAt time.Time
 }
+
+const usersInitCap = 5
+
+var UsersPool = sync.Pool{
+	New: func() any {
+		return make(Users, 0, usersInitCap)
+	},
+}
+
+func UsersAcquire() Users {
+	return UsersPool.Get().(Users)
+}
+
+func UsersRelease(t Users) {
+	t = t[:0]
+	UsersPool.Put(t) // nolint:staticcheck
+}
+
+type Users []User
 
 type ErrDuplicateNIP struct{}
 
@@ -97,4 +116,29 @@ func (e ErrNotFoundOrNotNurse) Error() string {
 
 func (e ErrNotFoundOrNotNurse) Status() int {
 	return http.StatusBadRequest
+}
+
+var FilterUserPool = sync.Pool{
+	New: func() any {
+		return new(FilterUser)
+	},
+}
+
+func FilterUserAcquire() *FilterUser {
+	return FilterUserPool.Get().(*FilterUser)
+}
+
+func FilterUserRelease(t *FilterUser) {
+	*t = FilterUser{}
+	FilterUserPool.Put(t)
+}
+
+type FilterUser struct {
+	UserID    ulid.ULID
+	Limit     int
+	Offset    int
+	Name      string
+	NIP       string
+	Role      string
+	CreatedAt string
 }

@@ -12,4 +12,5 @@ type UserRepositoryContract interface {
 	UpdateNurse(ctx context.Context, user *domain.User) error
 	DeleteNurse(ctx context.Context, user *domain.User) error
 	UpdateAccess(ctx context.Context, user *domain.User) error
+	GetUsers(ctx context.Context, filter *domain.FilterUser, users domain.Users) (domain.Users, error)
 }
