@@ -32,7 +32,8 @@ func (r UserRepository) Register(ctx context.Context, user *domain.User) error {
 	user.ID = id.New()
 	user.CreatedAt = time.Now()
 
-	insertQuery := `INSERT INTO users (id, nip, name, password, is_it, img_url, created_at) VALUES (@id, @nip, @name, @password, @is_it, @img_url, @created_at)`
+	insertQuery := `INSERT INTO users (id, nip, name, password, is_it, img_url, created_at) 
+		VALUES (@id, @nip, @name, @password, @is_it, @img_url, @created_at)`
 	args := pgx.NamedArgs{
 		"id":         user.ID,
 		"nip":        user.NIP,
@@ -205,7 +206,7 @@ func (r UserRepository) GetUsers(
 }
 
 func (r UserRepository) filterUser(filter *domain.FilterUser) (string, pgx.NamedArgs) {
-	const totalConditions = 1
+	const totalConditions = 4
 	conditions, params := make([]string, 0, totalConditions), pgx.NamedArgs{}
 
 	if !id.IsZero(filter.UserID) {

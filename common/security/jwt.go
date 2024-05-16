@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2/utils"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/oklog/ulid/v2"
 	"go.uber.org/zap"
 
 	"github.com/j03hanafi/halo-suster/common/configs"
@@ -17,7 +18,10 @@ type AccessTokenClaims struct {
 }
 
 type user struct {
-	Role string `json:"role"`
+	UserID ulid.ULID `json:"user_id"`
+	NIP    string    `json:"nip"`
+	Name   string    `json:"name"`
+	Role   string    `json:"role"`
 }
 
 func GenerateAccessToken(u *domain.User) (string, error) {
@@ -29,7 +33,10 @@ func GenerateAccessToken(u *domain.User) (string, error) {
 
 	claims := AccessTokenClaims{
 		User: user{
-			Role: u.Role,
+			UserID: u.ID,
+			NIP:    u.NIP,
+			Name:   u.Name,
+			Role:   u.Role,
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(currentTime),

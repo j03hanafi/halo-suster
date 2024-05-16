@@ -412,9 +412,24 @@ func (r *queryParam) validate() {
 	}
 }
 
+var getUserResPool = sync.Pool{
+	New: func() any {
+		return new(getUserRes)
+	},
+}
+
+func getUserResAcquire() *getUserRes {
+	return getUserResPool.Get().(*getUserRes)
+}
+
+func getUserResRelease(t *getUserRes) {
+	*t = getUserRes{}
+	getUserResPool.Put(t)
+}
+
 type getUserRes struct {
 	UserID    ulid.ULID `json:"userId"`
-	NIP       string    `json:"nip"`
+	NIP       nip       `json:"nip"`
 	Name      string    `json:"name"`
 	CreatedAt string    `json:"createdAt"`
 }

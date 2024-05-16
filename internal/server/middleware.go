@@ -94,7 +94,13 @@ func jwtMiddleware() fiber.Handler {
 		ContextKey: accessToken,
 		SuccessHandler: func(c *fiber.Ctx) error {
 			claims := c.Locals(accessToken).(*jwt.Token).Claims.(*security.AccessTokenClaims)
-			c.Locals(domain.UserFromToken, claims.User.Role)
+			user := domain.User{
+				ID:   claims.User.UserID,
+				NIP:  claims.User.NIP,
+				Name: claims.User.Name,
+				Role: claims.User.Role,
+			}
+			c.Locals(domain.UserFromToken, user)
 			return c.Next()
 		},
 		ErrorHandler: func(c *fiber.Ctx, err error) error {

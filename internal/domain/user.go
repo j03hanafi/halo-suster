@@ -58,6 +58,35 @@ func UsersRelease(t Users) {
 
 type Users []User
 
+func (e ErrNotFoundOrNotNurse) Status() int {
+	return http.StatusBadRequest
+}
+
+var FilterUserPool = sync.Pool{
+	New: func() any {
+		return new(FilterUser)
+	},
+}
+
+func FilterUserAcquire() *FilterUser {
+	return FilterUserPool.Get().(*FilterUser)
+}
+
+func FilterUserRelease(t *FilterUser) {
+	*t = FilterUser{}
+	FilterUserPool.Put(t)
+}
+
+type FilterUser struct {
+	UserID    ulid.ULID
+	Limit     int
+	Offset    int
+	Name      string
+	NIP       string
+	Role      string
+	CreatedAt string
+}
+
 type ErrDuplicateNIP struct{}
 
 func (e ErrDuplicateNIP) Error() string {
@@ -112,33 +141,4 @@ type ErrNotFoundOrNotNurse struct{}
 
 func (e ErrNotFoundOrNotNurse) Error() string {
 	return "User not found or is not a nurse"
-}
-
-func (e ErrNotFoundOrNotNurse) Status() int {
-	return http.StatusBadRequest
-}
-
-var FilterUserPool = sync.Pool{
-	New: func() any {
-		return new(FilterUser)
-	},
-}
-
-func FilterUserAcquire() *FilterUser {
-	return FilterUserPool.Get().(*FilterUser)
-}
-
-func FilterUserRelease(t *FilterUser) {
-	*t = FilterUser{}
-	FilterUserPool.Put(t)
-}
-
-type FilterUser struct {
-	UserID    ulid.ULID
-	Limit     int
-	Offset    int
-	Name      string
-	NIP       string
-	Role      string
-	CreatedAt string
 }

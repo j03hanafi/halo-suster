@@ -422,13 +422,16 @@ func (h userHandler) GetUsers(c *fiber.Ctx) error {
 	usersRes := getUsersResAcquire()
 	defer getUsersResRelease(usersRes)
 
+	userRes := getUserResAcquire()
+	defer getUserResRelease(userRes)
+
 	for _, user := range users {
-		usersRes = append(usersRes, getUserRes{
-			UserID:    user.ID,
-			NIP:       user.NIP,
-			Name:      user.Name,
-			CreatedAt: user.CreatedAt.Format(time.DateOnly),
-		})
+		userRes.UserID = user.ID
+		userRes.NIP = nip(user.NIP)
+		userRes.Name = user.Name
+		userRes.CreatedAt = user.CreatedAt.Format(time.DateOnly)
+
+		usersRes = append(usersRes, *userRes)
 	}
 
 	res.Data = usersRes
@@ -437,8 +440,11 @@ func (h userHandler) GetUsers(c *fiber.Ctx) error {
 }
 
 func itStaffAccess(c *fiber.Ctx) error {
-	userRole := c.Locals(domain.UserFromToken).(string)
-	if userRole != domain.RoleIT {
+	user := domain.UserAcquire()
+	defer domain.UserRelease(user)
+	*user = c.Locals(domain.UserFromToken).(domain.User)
+
+	if user.Role != domain.RoleIT {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized access",
 		})

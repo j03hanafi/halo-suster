@@ -6,6 +6,7 @@ import (
 
 	"github.com/j03hanafi/halo-suster/common/configs"
 	"github.com/j03hanafi/halo-suster/internal/application/info"
+	"github.com/j03hanafi/halo-suster/internal/application/medical"
 	"github.com/j03hanafi/halo-suster/internal/application/user"
 )
 
@@ -14,4 +15,5 @@ func New(server *fiber.App, db *pgxpool.Pool, jwtMiddleware fiber.Handler) {
 
 	info.NewModule(router, db)
 	user.NewModule(router, db, jwtMiddleware)
+	medical.NewModule(router, db, jwtMiddleware)
 }
