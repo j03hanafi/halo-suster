@@ -1,10 +1,11 @@
-package database
+package adapter
 
 import (
 	"context"
 	"fmt"
 	"math"
 	"strconv"
+	"sync"
 	"time"
 
 	pgxZap "github.com/jackc/pgx-zap"
@@ -15,14 +16,30 @@ import (
 	"github.com/j03hanafi/halo-suster/common/configs"
 )
 
-func NewPGConn() (*pgxpool.Pool, error) {
+var (
+	pgxPool *pgxpool.Pool
+	pgxOnce sync.Once
+)
+
+func GetDBPool() *pgxpool.Pool {
+	pgxOnce.Do(func() {
+		var err error
+		pgxPool, err = newPGConn()
+		if err != nil {
+			panic(err)
+		}
+	})
+	return pgxPool
+}
+
+func newPGConn() (*pgxpool.Pool, error) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		time.Duration(configs.Get().App.ContextTimeout)*time.Second,
 	)
 	defer cancel()
 
-	callerInfo := "[database.NewPGConn]"
+	callerInfo := "[adapter.newPGConn]"
 	l := zap.L().With(zap.String("caller", callerInfo))
 
 	maxConnPool := configs.Get().DB.MaxConnPool

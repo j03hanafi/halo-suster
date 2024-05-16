@@ -13,8 +13,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
+	"github.com/j03hanafi/halo-suster/common/adapter"
 	"github.com/j03hanafi/halo-suster/common/configs"
-	"github.com/j03hanafi/halo-suster/common/database"
 	"github.com/j03hanafi/halo-suster/internal/application"
 )
 
@@ -22,10 +22,7 @@ func Run() {
 	callerInfo := "[server.Run]"
 	l := zap.L().With(zap.String("caller", callerInfo))
 
-	db, err := database.NewPGConn()
-	if err != nil {
-		l.Panic("Failed to connect to database", zap.Error(err))
-	}
+	db := adapter.GetDBPool()
 	defer db.Close()
 
 	serverTimeout := time.Duration(configs.Get().API.Timeout) * time.Second
@@ -70,7 +67,7 @@ func Run() {
 
 	go func() {
 		addr := fmt.Sprintf("%s:%d", configs.Get().App.Host, configs.Get().App.Port)
-		if err = app.Listen(addr); err != nil {
+		if err := app.Listen(addr); err != nil {
 			l.Panic("Server Error", zap.Error(err))
 		}
 	}()
@@ -84,8 +81,7 @@ func Run() {
 	<-c
 	l.Info("shutting down gracefully, press Ctrl+C again to force")
 
-	err = app.ShutdownWithTimeout(serverTimeout)
-	if err != nil {
+	if err := app.ShutdownWithTimeout(serverTimeout); err != nil {
 		l.Panic("Server forced to shutdown", zap.Error(err))
 	}
 

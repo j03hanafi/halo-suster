@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gofiber/contrib/fiberzap/v2"
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -61,6 +62,9 @@ func zapMiddleware() fiber.Handler {
 			"ua",
 			"resBody",
 			"error",
+		},
+		SkipBody: func(c *fiber.Ctx) bool {
+			return strings.HasSuffix(c.Path(), "image")
 		},
 	})
 }
