@@ -4,10 +4,12 @@ name: Build and push to Amazon ECR
 
 on:
   pull_request:
+    types: [ closed ]
     branches: [ main ]
 
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true
     name: Deploy
     runs-on: ubuntu-latest
 
