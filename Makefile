@@ -164,13 +164,13 @@ production/build: confirm tidy audit
 
 ## docker/build tag=$1: build the application for docker
 .PHONY: docker/build
-docker/build: confirm update tidy audit
+docker/build: confirm
 	docker build -t j03hanafi/${BINARY_NAME}:${tag} .
 
 ## docker/run tag=$1: run the application in a docker container
 .PHONY: docker/run
 docker/run:
-	docker run -p 8080:8080 -d j03hanafi/${BINARY_NAME}:${tag}
+	docker run -e DB_HOST=host.docker.internal --name ${BINARY_NAME}-${tag} -p 8080:8080 -d j03hanafi/${BINARY_NAME}:${tag}
 
 ## docker/push tag=$1: push the docker image to the registry
 .PHONY: docker/push

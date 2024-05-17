@@ -92,7 +92,7 @@ func jwtMiddleware() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{
 			JWTAlg: jwtware.HS256,
-			Key:    []byte(configs.Get().API.JWT.JWTSecret),
+			Key:    []byte(configs.Get().JWT.JWTSecret),
 		},
 		Claims:     &security.AccessTokenClaims{},
 		ContextKey: accessToken,

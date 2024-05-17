@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -18,14 +19,21 @@ func Get() *RuntimeConfig {
 
 		runtimeViper := viper.New()
 
-		// ListCats config from env vars
-		readEnv(runtimeViper)
-
 		// ListCats config from file
 		err := readConfigFile(runtimeViper, "config", "toml", "configs")
 		if err != nil {
 			panic(fmt.Errorf("%s failed to read config file: %v\n", callerInfo, err))
 		}
+
+		log.Printf("\n\n%#v\n\n", runtimeViper.AllSettings())
+
+		// ListCats config from env vars
+		err = readEnv(runtimeViper)
+		if err != nil {
+			panic(fmt.Errorf("%s failed to read env vars: %v\n", callerInfo, err))
+		}
+
+		log.Printf("\n\n%#v\n\n", runtimeViper.AllSettings())
 
 		// Load config into runtimeConfig
 		runtime, err = loadConfig(runtimeViper)
@@ -41,24 +49,48 @@ func Get() *RuntimeConfig {
 	return runtime
 }
 
-func readEnv(runtimeViper *viper.Viper) {
-	// Set defaults for env vars
-	runtimeViper.SetDefault(dbName, defaultDBName)
-	runtimeViper.SetDefault(dbPort, defaultDBPort)
-	runtimeViper.SetDefault(dbHost, defaultDBHost)
-	runtimeViper.SetDefault(dbUsername, defaultDBUsername)
-	runtimeViper.SetDefault(dbPassword, defaultDBPassword)
-	runtimeViper.SetDefault(dbParams, defaultDBParam)
-	runtimeViper.SetDefault(jwtSecret, defaultJWTSecret)
-	runtimeViper.SetDefault(bcryptSalt, defaultBCryptSalt)
-	runtimeViper.SetDefault(s3ID, defaultS3ID)
-	runtimeViper.SetDefault(s3Secret, defaultS3Secret)
-	runtimeViper.SetDefault(s3Bucket, defaultS3Bucket)
-	runtimeViper.SetDefault(s3Region, defaultS3Region)
-
+func readEnv(runtimeViper *viper.Viper) error {
 	// Load env vars
 	runtimeViper.AllowEmptyEnv(false)
-	runtimeViper.AutomaticEnv()
+
+	if err := runtimeViper.BindEnv("API."+bcryptSalt, bcryptSalt); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("JWT."+jwtSecret, jwtSecret); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("DB."+dbUsername, dbUsername); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("DB."+dbPassword, dbPassword); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("DB."+dbHost, dbHost); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("DB."+dbPort, dbPort); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("DB."+dbName, dbName); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("DB."+dbParams, dbParams); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("S3."+awsAccessKeyID, awsAccessKeyID); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("S3."+awsSecretAccessKey, awsSecretAccessKey); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("S3."+awsS3BucketName, awsS3BucketName); err != nil {
+		return err
+	}
+	if err := runtimeViper.BindEnv("S3."+awsRegion, awsRegion); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func readConfigFile(runtimeViper *viper.Viper, fileName, fileType string, filePath ...string) error {
@@ -81,7 +113,7 @@ func loadConfig(runtimeViper *viper.Viper) (*RuntimeConfig, error) {
 	callerInfo := "[configs.loadConfig]"
 
 	// load env vars to dbCfg and apiCfg
-	dbConfig, apiConfig, s3Config := &dbCfg{}, &apiCfg{}, &s3Cfg{}
+	dbConfig, apiConfig, jwtConfig, s3Config := &dbCfg{}, &apiCfg{}, &jwtCfg{}, &s3Cfg{}
 	err := runtimeViper.Unmarshal(dbConfig)
 	if err != nil {
 		return nil, fmt.Errorf("%s failed to decode dbConfig: %v\n", callerInfo, err)
@@ -90,18 +122,21 @@ func loadConfig(runtimeViper *viper.Viper) (*RuntimeConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s failed to decode apiConfig: %v\n", callerInfo, err)
 	}
+	err = runtimeViper.Unmarshal(jwtConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%s failed to decode jwtConfig: %v\n", callerInfo, err)
+	}
 	err = runtimeViper.Unmarshal(s3Config)
 	if err != nil {
 		return nil, fmt.Errorf("%s failed to decode s3Config: %v\n", callerInfo, err)
 	}
 
-	// because we get jwtSecret from env vars but in config runtime it's nested, we need to manually set it
-	apiConfig.JWT.JWTSecret = runtimeViper.GetString(jwtSecret)
-
 	// set env vars to runtimeConfig before decode from config file
 	runtimeConfig := &RuntimeConfig{
 		API: *apiConfig,
 		DB:  *dbConfig,
+		JWT: *jwtConfig,
+		S3:  *s3Config,
 	}
 	err = runtimeViper.Unmarshal(runtimeConfig)
 	if err != nil {

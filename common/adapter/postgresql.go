@@ -58,7 +58,7 @@ func newPGConn() (*pgxpool.Pool, error) {
 		configs.Get().DB.Host,
 		configs.Get().DB.Port,
 		configs.Get().DB.Name,
-		configs.Get().DB.Param,
+		configs.Get().DB.Params,
 	)
 
 	config, err := pgxpool.ParseConfig(url)
@@ -75,7 +75,7 @@ func newPGConn() (*pgxpool.Pool, error) {
 		Logger:   poolLog,
 		LogLevel: tracelog.LogLevelNone,
 	}
-	if configs.Get().API.DebugMode {
+	if configs.Get().App.DebugMode {
 		poolTracer.LogLevel = tracelog.LogLevelDebug
 	}
 	config.ConnConfig.Tracer = poolTracer
@@ -108,7 +108,7 @@ func getMaxConnPool(ctx context.Context) (int, error) {
 		configs.Get().DB.Host,
 		configs.Get().DB.Port,
 		configs.Get().DB.Name,
-		configs.Get().DB.Param,
+		configs.Get().DB.Params,
 	)
 
 	dbPool, err := pgxpool.New(ctx, url)

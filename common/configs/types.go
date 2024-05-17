@@ -1,36 +1,24 @@
 package configs
 
 const (
-	dbName     = "DB_NAME"
-	dbPort     = "DB_PORT"
-	dbHost     = "DB_HOST"
-	dbUsername = "DB_USERNAME"
-	dbPassword = "DB_PASSWORD"
-	dbParams   = "DB_PARAM"
-	jwtSecret  = "JWT_SECRET"
-	bcryptSalt = "BCRYPT_SALT"
-	s3ID       = "S3_ID"
-	s3Secret   = "S3_SECRET_KEY" // #nosec G101
-	s3Bucket   = "S3_BUCKET_NAME"
-	s3Region   = "S3_REGION"
-
-	defaultDBName     = "halo-suster"
-	defaultDBPort     = 5432
-	defaultDBHost     = "localhost"
-	defaultDBUsername = "postgres"
-	defaultDBPassword = "password"
-	defaultDBParam    = "sslmode=disable"
-	defaultJWTSecret  = "secret"
-	defaultBCryptSalt = 8
-	defaultS3ID       = ""
-	defaultS3Secret   = ""
-	defaultS3Bucket   = ""
-	defaultS3Region   = ""
+	bcryptSalt         = "BCRYPT_SALT"
+	jwtSecret          = "JWT_SECRET"
+	dbUsername         = "DB_USERNAME"
+	dbPassword         = "DB_PASSWORD"
+	dbHost             = "DB_HOST"
+	dbPort             = "DB_PORT"
+	dbName             = "DB_NAME"
+	dbParams           = "DB_PARAMS"
+	awsAccessKeyID     = "AWS_ACCESS_KEY_ID"
+	awsSecretAccessKey = "AWS_SECRET_ACCESS_KEY" // #nosec G10
+	awsS3BucketName    = "AWS_S3_BUCKET_NAME"
+	awsRegion          = "AWS_REGION"
 )
 
 type RuntimeConfig struct {
 	App appCfg `mapstructure:"APP"`
 	API apiCfg `mapstructure:"API"`
+	JWT jwtCfg `mapstructure:"JWT"`
 	DB  dbCfg  `mapstructure:"DB"`
 	S3  s3Cfg  `mapstructure:"S3"`
 }
@@ -42,35 +30,34 @@ type appCfg struct {
 	Version        string `mapstructure:"VERSION"`
 	PreFork        bool   `mapstructure:"PREFORK"`
 	ContextTimeout int    `mapstructure:"CONTEXT_TIMEOUT"`
+	DebugMode      bool   `mapstructure:"DEBUG_MODE"`
 }
 
 type apiCfg struct {
 	BaseURL    string `mapstructure:"BASE_URL"`
 	Timeout    int    `mapstructure:"TIMEOUT"`
-	DebugMode  bool   `mapstructure:"DEBUG_MODE"`
 	BCryptSalt int    `mapstructure:"BCRYPT_SALT"`
-	JWT        jwt    `mapstructure:"JWT"`
 }
 
-type jwt struct {
+type jwtCfg struct {
 	Expire    int    `mapstructure:"EXPIRE"`
 	JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
 type dbCfg struct {
-	Name               string  `mapstructure:"DB_NAME"`
-	Port               int     `mapstructure:"DB_PORT"`
-	Host               string  `mapstructure:"DB_HOST"`
 	Username           string  `mapstructure:"DB_USERNAME"`
 	Password           string  `mapstructure:"DB_PASSWORD"`
-	Param              string  `mapstructure:"DB_PARAM"`
+	Host               string  `mapstructure:"DB_HOST"`
+	Port               int     `mapstructure:"DB_PORT"`
+	Name               string  `mapstructure:"DB_NAME"`
+	Params             string  `mapstructure:"DB_PARAMS"`
 	MaxConnPool        int     `mapstructure:"MAX_CONN_POOL"`
 	MaxConnPoolPercent float64 `mapstructure:"MAX_CONN_POOL_PERCENT"`
 }
 
 type s3Cfg struct {
-	s3ID         string `mapstructure:"S3_ID"`
-	s3SecretKey  string `mapstructure:"S3_SECRET_KEY"`
-	s3BucketName string `mapstructure:"S3_BUCKET_NAME"`
-	s3Region     string `mapstructure:"S3_REGION"`
+	AccessKeyID     string `mapstructure:"AWS_ACCESS_KEY_ID"`
+	SecretAccessKey string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
+	BucketName      string `mapstructure:"AWS_S3_BUCKET_NAME"`
+	Region          string `mapstructure:"AWS_REGION"`
 }

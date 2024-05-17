@@ -19,7 +19,7 @@ func setConsoleLogger() (zapcore.Core, []zap.Option) {
 
 	logLevel := zap.NewAtomicLevelAt(zap.InfoLevel)
 
-	if configs.Get().API.DebugMode {
+	if configs.Get().App.DebugMode {
 		logLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
 	}
 

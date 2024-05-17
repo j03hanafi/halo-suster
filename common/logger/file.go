@@ -47,7 +47,7 @@ func setFileLogger() (zapcore.Core, []zap.Option) {
 	encoder := zapcore.NewJSONEncoder(config)
 
 	logLevel := zap.NewAtomicLevelAt(zap.ErrorLevel)
-	if configs.Get().API.DebugMode {
+	if configs.Get().App.DebugMode {
 		logLevel = zap.NewAtomicLevelAt(zap.WarnLevel)
 	}
 	options := make([]zap.Option, 0)

@@ -29,7 +29,7 @@ func GenerateAccessToken(u *domain.User) (string, error) {
 	l := zap.L().With(zap.String("caller", callerInfo))
 
 	currentTime := time.Now()
-	tokenExp := currentTime.Add(time.Duration(configs.Get().API.JWT.Expire) * time.Second)
+	tokenExp := currentTime.Add(time.Duration(configs.Get().JWT.Expire) * time.Second)
 
 	claims := AccessTokenClaims{
 		User: user{
@@ -46,7 +46,7 @@ func GenerateAccessToken(u *domain.User) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedString, err := token.SignedString(utils.UnsafeBytes(configs.Get().API.JWT.JWTSecret))
+	signedString, err := token.SignedString(utils.UnsafeBytes(configs.Get().JWT.JWTSecret))
 	if err != nil {
 		l.Error("failed to sign token", zap.Error(err))
 		return "", err
