@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS medical_records
     symptoms             VARCHAR(2000) NOT NULL,
     medications          VARCHAR(2000) NOT NULL,
     staff_id             bytea         NOT NULL,
-    staff_nip            varchar(13)   NOT NULL,
+    staff_nip            varchar(15)   NOT NULL,
     staff_name           VARCHAR(30)   NOT NULL,
     created_at           timestamp     NOT NULL
 );

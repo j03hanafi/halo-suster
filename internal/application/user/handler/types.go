@@ -76,10 +76,10 @@ func (n *nip) MarshalJSON() ([]byte, error) {
 
 func (n *nip) validate(firstDigit string) error {
 	var errs error
-	const nipLength = 13
+	const nipLength = 15
 
-	if len(*n) != nipLength {
-		errs = multierr.Append(errs, errors.New("nip must have 13 characters"))
+	if len(*n) > nipLength {
+		errs = multierr.Append(errs, fmt.Errorf("nip is more than %d characters", nipLength))
 		return errs
 	}
 

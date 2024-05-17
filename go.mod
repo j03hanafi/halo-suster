@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.15
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.20
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.2
+	github.com/aws/smithy-go v1.20.2
 	github.com/bytedance/sonic v1.11.6
 	github.com/gofiber/contrib/fiberzap/v2 v2.1.3
 	github.com/gofiber/contrib/jwt v1.0.9
@@ -41,7 +42,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.24.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.9 // indirect
-	github.com/aws/smithy-go v1.20.2 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect

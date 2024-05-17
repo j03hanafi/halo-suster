@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"mime/multipart"
 	"strings"
 	"time"
@@ -34,7 +35,12 @@ func (s ImageService) UploadImage(ctx context.Context, image *multipart.FileHead
 	l := logger.FromCtx(ctx).With(zap.String("caller", callerInfo))
 
 	getExt := strings.Split(image.Filename, ".")
+	if len(getExt) == 0 {
+		l.Error("invalid image extension", zap.String("filename", image.Filename))
+		return "", errors.New("failed to get image extension")
+	}
 	ext := getExt[len(getExt)-1]
+
 	image.Filename = configs.Get().App.Name + "_" + id.New().String() + "." + ext
 
 	url, err := s.imageRepository.UploadImage(ctx, image)

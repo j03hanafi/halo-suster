@@ -24,7 +24,7 @@
     DB_NAME = "halo-suster"
     DB_PARAMS = "sslmode=disable"
     MAX_CONN_POOL = 12
-    MAX_CONN_POOL_PERCENT = 0.45
+    MAX_CONN_POOL_PERCENT = 0.475
 
 [S3]
     AWS_ACCESS_KEY_ID = ""
