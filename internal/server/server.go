@@ -25,6 +25,8 @@ func Run() {
 	db := adapter.GetDBPool()
 	defer db.Close()
 
+	s3 := adapter.GetS3Client()
+
 	serverTimeout := time.Duration(configs.Get().API.Timeout) * time.Second
 	serverConfig := fiber.Config{
 		AppName:                   configs.Get().App.Name,
@@ -50,6 +52,12 @@ func Run() {
 				code = fiberErr.Code
 			}
 
+			if code == http.StatusRequestEntityTooLarge {
+				return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"message": "Request body too large",
+				})
+			}
+
 			return ctx.Status(code).JSON(fiber.Map{
 				"message": err.Error(),
 			})
@@ -62,7 +70,7 @@ func Run() {
 
 	app := fiber.New(serverConfig)
 	setMiddlewares(app)
-	application.New(app, db, jwtMiddleware())
+	application.New(app, db, s3, jwtMiddleware())
 	l.Debug("Server Config", zap.Any("Config", app.Config()))
 
 	go func() {

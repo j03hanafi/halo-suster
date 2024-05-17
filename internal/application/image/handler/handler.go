@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
@@ -31,28 +33,38 @@ func (h imageHandler) UploadImage(c *fiber.Ctx) error {
 	file, err := c.FormFile("file")
 	if err != nil {
 		l.Error("error parsing request body", zap.Error(err))
-		return fiber.ErrBadRequest
+		return errBadRequest{err: err}
 	}
 
 	// Validate File
 	const minSize, maxSize = 10 * 1024, 2 * 1024 * 1024
 	if file.Size < int64(minSize) || file.Size > int64(maxSize) {
 		l.Error("invalid file size")
-		return fiber.ErrBadRequest
+		return errBadRequest{err: errors.New("file size must be between 10KB and 2MB")}
 	}
 
 	if file.Header.Get("Content-Type") != "image/jpeg" {
 		l.Error("invalid file type")
-		return fiber.ErrBadRequest
+		return errBadRequest{err: errors.New("file type must be image/jpeg")}
 	}
 
-	err = h.imageService.UploadImage(userCtx, file)
+	url, err := h.imageService.UploadImage(userCtx, file)
 	if err != nil {
 		l.Error("error uploading image", zap.Error(err))
 		return err
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "success",
-	})
+	res := baseResponseAcquire()
+	defer baseResponseRelease(res)
+
+	res.Message = "File uploaded successfully"
+
+	imgURL := imageUploadResAcquire()
+	defer imageUploadResRelease(imgURL)
+
+	imgURL.ImgURL = url
+
+	res.Data = imgURL
+
+	return c.JSON(res)
 }

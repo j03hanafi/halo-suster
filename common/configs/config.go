@@ -2,7 +2,6 @@ package configs
 
 import (
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -25,15 +24,11 @@ func Get() *RuntimeConfig {
 			panic(fmt.Errorf("%s failed to read config file: %v\n", callerInfo, err))
 		}
 
-		log.Printf("\n\n%#v\n\n", runtimeViper.AllSettings())
-
 		// ListCats config from env vars
 		err = readEnv(runtimeViper)
 		if err != nil {
 			panic(fmt.Errorf("%s failed to read env vars: %v\n", callerInfo, err))
 		}
-
-		log.Printf("\n\n%#v\n\n", runtimeViper.AllSettings())
 
 		// Load config into runtimeConfig
 		runtime, err = loadConfig(runtimeViper)

@@ -3,33 +3,47 @@ package service
 import (
 	"context"
 	"mime/multipart"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
 
+	"github.com/j03hanafi/halo-suster/common/configs"
+	"github.com/j03hanafi/halo-suster/common/id"
 	"github.com/j03hanafi/halo-suster/common/logger"
+	"github.com/j03hanafi/halo-suster/internal/application/image/repository"
 )
 
 type ImageService struct {
-	contextTimeout time.Duration
+	imageRepository repository.ImageRepositoryContract
+	contextTimeout  time.Duration
 }
 
-func NewImageService(timeout time.Duration) *ImageService {
+func NewImageService(timeout time.Duration, imageRepository repository.ImageRepositoryContract) *ImageService {
 	return &ImageService{
-		contextTimeout: timeout,
+		imageRepository: imageRepository,
+		contextTimeout:  timeout,
 	}
 }
 
-func (s ImageService) UploadImage(ctx context.Context, image *multipart.FileHeader) error {
+func (s ImageService) UploadImage(ctx context.Context, image *multipart.FileHeader) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.contextTimeout)
 	defer cancel()
 
 	callerInfo := "[ImageService.UploadImage]"
 	l := logger.FromCtx(ctx).With(zap.String("caller", callerInfo))
 
-	l.Info("uploading image", zap.String("filename", image.Filename))
+	getExt := strings.Split(image.Filename, ".")
+	ext := getExt[len(getExt)-1]
+	image.Filename = configs.Get().App.Name + "_" + id.New().String() + "." + ext
 
-	return nil
+	url, err := s.imageRepository.UploadImage(ctx, image)
+	if err != nil {
+		l.Error("failed to upload image", zap.Error(err))
+		return "", err
+	}
+
+	return url, nil
 }
 
 var _ ImageServiceContract = (*ImageService)(nil)

@@ -1,10 +1,10 @@
-package service
+package repository
 
 import (
 	"context"
 	"mime/multipart"
 )
 
-type ImageServiceContract interface {
+type ImageRepositoryContract interface {
 	UploadImage(ctx context.Context, image *multipart.FileHeader) (string, error)
 }
