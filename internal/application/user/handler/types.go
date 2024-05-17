@@ -58,6 +58,10 @@ type baseResponse struct {
 type nip string
 
 func (n *nip) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return errors.New("nip is required")
+	}
+
 	var jsonNIP int
 	if err := json.Unmarshal(b, &jsonNIP); err != nil {
 		return errors.New("nip must be a number")

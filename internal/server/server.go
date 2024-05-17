@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bytedance/sonic"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
@@ -32,8 +32,8 @@ func Run() {
 		AppName:                   configs.Get().App.Name,
 		DisableDefaultDate:        true,
 		EnablePrintRoutes:         true,
-		JSONDecoder:               sonic.Unmarshal,
-		JSONEncoder:               sonic.Marshal,
+		JSONDecoder:               json.Unmarshal,
+		JSONEncoder:               json.Marshal,
 		ReadTimeout:               serverTimeout,
 		CaseSensitive:             true,
 		StrictRouting:             true,

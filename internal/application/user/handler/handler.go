@@ -27,7 +27,7 @@ func NewUserHandler(router fiber.Router, jwtMiddleware fiber.Handler, userServic
 	authRouter.Post("/it/register", handler.RegisterIT)
 	authRouter.Post("/it/login", handler.LoginIT)
 	authRouter.Post("/nurse/login", handler.LoginNurse)
-	authRouter.Get("/", jwtMiddleware, itStaffAccess, handler.GetUsers)
+	authRouter.Get("", jwtMiddleware, itStaffAccess, handler.GetUsers)
 
 	nurseRouter := router.Group("/user/nurse", jwtMiddleware, itStaffAccess)
 	nurseRouter.Post("/register", handler.RegisterNurse)
@@ -107,10 +107,11 @@ func (h userHandler) LoginIT(c *fiber.Ctx) error {
 
 	if err := req.validate(nipITFirstDigit); err != nil {
 		l.Error("error validating request body", zap.Error(err))
-		if !strings.HasPrefix(string(*req.NIP), nipITFirstDigit) {
-			return new(domain.ErrInvalidNIP)
-		}
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipITFirstDigit) {
+		return new(domain.ErrInvalidNIP)
 	}
 
 	user := domain.UserAcquire()
@@ -164,10 +165,12 @@ func (h userHandler) LoginNurse(c *fiber.Ctx) error {
 
 	if err := req.validate(nipNurseFirstDigit); err != nil {
 		l.Error("error validating request body", zap.Error(err))
-		if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
-			return new(domain.ErrInvalidNIP)
-		}
+
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		return new(domain.ErrInvalidNIP)
 	}
 
 	user := domain.UserAcquire()
@@ -275,10 +278,11 @@ func (h userHandler) UpdateNurse(c *fiber.Ctx) error {
 
 	if err = req.validate(nipNurseFirstDigit); err != nil {
 		l.Error("error validating request body", zap.Error(err))
-		if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
-			return new(domain.ErrInvalidNIP)
-		}
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		return new(domain.ErrInvalidNIP)
 	}
 
 	user := domain.UserAcquire()

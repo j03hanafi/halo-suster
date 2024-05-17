@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/contrib/fiberzap/v2"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/golang-jwt/jwt/v5"
@@ -26,17 +26,15 @@ const (
 )
 
 func setMiddlewares(app *fiber.App) {
-	app.Use(compressionMiddleware())
 	app.Use(recoveryMiddleware())
 	app.Use(zapMiddleware())
 	app.Use(requestIDMiddleware())
 	app.Use(loggerMiddleware())
+	app.Use(pprofMiddleware())
 }
 
-func compressionMiddleware() fiber.Handler {
-	return compress.New(compress.Config{
-		Level: compress.LevelBestCompression,
-	})
+func pprofMiddleware() fiber.Handler {
+	return pprof.New()
 }
 
 func recoveryMiddleware() fiber.Handler {

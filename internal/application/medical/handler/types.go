@@ -52,20 +52,24 @@ type baseResponse struct {
 type idNumber string
 
 func (n *idNumber) UnmarshalJSON(b []byte) error {
-	var jsonNIP int
-	if err := json.Unmarshal(b, &jsonNIP); err != nil {
+	if len(b) == 0 {
+		return errors.New("identityNumber is required")
+	}
+
+	var jsonID int
+	if err := json.Unmarshal(b, &jsonID); err != nil {
 		return errors.New("identityNumber must be a number")
 	}
-	*n = idNumber(strconv.Itoa(jsonNIP))
+	*n = idNumber(strconv.Itoa(jsonID))
 	return nil
 }
 
 func (n *idNumber) MarshalJSON() ([]byte, error) {
-	jsonNIP, err := strconv.Atoi(string(*n))
+	jsonID, err := strconv.Atoi(string(*n))
 	if err != nil {
 		return nil, err
 	}
-	return json.Marshal(jsonNIP)
+	return json.Marshal(jsonID)
 }
 
 func (n *idNumber) validate() error {
@@ -133,7 +137,7 @@ func (r *recordPatientReq) validate() error {
 	if r.BirthDate == "" {
 		errs = multierr.Append(errs, errors.New("birthDate is required"))
 	} else {
-		if birthDate, err := time.Parse(time.DateOnly, r.BirthDate); err != nil {
+		if birthDate, err := time.Parse("2006-01-02T15:04:05.999Z", r.BirthDate); err != nil {
 			errs = multierr.Append(errs, errors.New("birthDate must be in format yyyy-mm-dd"))
 		} else {
 			r.birthDate = birthDate

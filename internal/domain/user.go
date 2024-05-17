@@ -58,10 +58,6 @@ func UsersRelease(t Users) {
 
 type Users []User
 
-func (e ErrNotFoundOrNotNurse) Status() int {
-	return http.StatusBadRequest
-}
-
 var FilterUserPool = sync.Pool{
 	New: func() any {
 		return new(FilterUser)
@@ -141,4 +137,8 @@ type ErrNotFoundOrNotNurse struct{}
 
 func (e ErrNotFoundOrNotNurse) Error() string {
 	return "User not found or is not a nurse"
+}
+
+func (e ErrNotFoundOrNotNurse) Status() int {
+	return http.StatusNotFound
 }

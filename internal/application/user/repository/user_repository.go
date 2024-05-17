@@ -101,7 +101,7 @@ func (r UserRepository) UpdateNurse(ctx context.Context, user *domain.User) erro
 	callerInfo := "[UserRepository.UpdateNurse]"
 	l := logger.FromCtx(ctx).With(zap.String("caller", callerInfo))
 
-	updateQuery := `UPDATE users SET nip = @nip, name = @name WHERE id = @id`
+	updateQuery := `UPDATE users SET nip = @nip, name = @name WHERE id = @id AND nip LIKE '303%'`
 	args := pgx.NamedArgs{
 		"id":   user.ID,
 		"nip":  user.NIP,
