@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v3 go build -ldflags='-s -w' -pgo=auto -o main cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v3 go build -ldflags='-s -w' -o main cmd/api/main.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
