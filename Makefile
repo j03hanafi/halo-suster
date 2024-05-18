@@ -4,11 +4,18 @@ BINARY_NAME := halo-suster
 PWD := $(shell pwd)
 tag := latest
 DB_TYPE := postgres
+#DB_USERNAME := postgres
+#DB_PASSWORD := password
+#DB_HOST := localhost
+#DB_PORT := 5432
+#DB_NAME := halo-suster
+#DB_PARAM := sslmode=disable
+
 DB_USERNAME := postgres
-DB_PASSWORD := password
-DB_HOST := localhost
+DB_PASSWORD := quooy9shiLeesohjaeBieyoox8ThahBoo
+DB_HOST := 54.255.153.174
 DB_PORT := 5432
-DB_NAME := halo-suster
+DB_NAME := postgres
 DB_PARAM := sslmode=disable
 
 
@@ -160,7 +167,7 @@ migrate/version:
 ## production/build: build the application for production
 .PHONY: production/build
 production/build: confirm tidy audit
-	GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -pgo=auto -o=./bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+	GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o=./bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## docker/build tag=$1: build the application for docker
 .PHONY: docker/build
