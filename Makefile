@@ -160,7 +160,7 @@ migrate/version:
 ## production/build: build the application for production
 .PHONY: production/build
 production/build: confirm tidy audit
-	GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o=./bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+	GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -pgo=auto -o=./bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## docker/build tag=$1: build the application for docker
 .PHONY: docker/build
