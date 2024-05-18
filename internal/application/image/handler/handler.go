@@ -29,6 +29,8 @@ func (h imageHandler) UploadImage(c *fiber.Ctx) error {
 	userCtx := c.UserContext()
 	l := logger.FromCtx(userCtx).With(zap.String("caller", callerInfo))
 
+	l.Debug("body", zap.Any("body", c.Body()))
+
 	// Get file
 	file, err := c.FormFile("file")
 	if err != nil {

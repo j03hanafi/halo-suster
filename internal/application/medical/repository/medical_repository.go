@@ -104,8 +104,8 @@ func (r MedicalRepository) filterPatient(filter *domain.FilterPatient) (string, 
 	conditions, params := make([]string, 0, totalConditions), pgx.NamedArgs{}
 
 	if filter.ID != "" {
-		conditions = append(conditions, "id LIKE @id")
-		params["id"] = filter.ID + "%"
+		conditions = append(conditions, "id = @id")
+		params["id"] = filter.ID
 	}
 
 	if filter.Name != "" {

@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -124,9 +123,9 @@ func (h medicalHandler) GetPatients(c *fiber.Ctx) error {
 			IdentityNumber: idNumber(patient.ID),
 			PhoneNumber:    "+" + patient.PhoneNumber,
 			Name:           patient.Name,
-			BirthDate:      patient.BirthDate.Format(time.DateOnly),
+			BirthDate:      patient.BirthDate.Format(dateFormat),
 			Gender:         patient.Gender,
-			CreatedAt:      patient.CreatedAt.Format(time.DateOnly),
+			CreatedAt:      patient.CreatedAt.Format(dateFormat),
 		})
 	}
 
@@ -235,13 +234,13 @@ func (h medicalHandler) GetMedicalRecords(c *fiber.Ctx) error {
 				IdentityNumber:      idNumber(record.PatientID),
 				PhoneNumber:         "+" + record.PatientPhoneNumber,
 				Name:                record.PatientName,
-				BirthDate:           record.PatientBirthDate.Format(time.DateOnly),
+				BirthDate:           record.PatientBirthDate.Format(dateFormat),
 				Gender:              record.PatientGender,
 				IdentityCardScanImg: record.PatientImgURL,
 			},
 			Symptoms:    record.Symptoms,
 			Medications: record.Medications,
-			CreatedAt:   record.CreatedAt.Format(time.DateOnly),
+			CreatedAt:   record.CreatedAt.Format(dateFormat),
 			CreatedBy: createdBy{
 				Nip:    uint(nip),
 				Name:   record.StaffName,

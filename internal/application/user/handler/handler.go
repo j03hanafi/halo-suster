@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/oklog/ulid/v2"
@@ -50,9 +49,14 @@ func (h userHandler) RegisterIT(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipITFirstDigit); err != nil {
+	if err := req.validate(); err != nil {
 		l.Error("error validating request body", zap.Error(err))
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipITFirstDigit) {
+		l.Error("Invalid NIP", zap.String("NIP", string(*req.NIP)))
+		return errBadRequest{err: new(domain.ErrInvalidNIP)}
 	}
 
 	user := domain.UserAcquire()
@@ -105,8 +109,7 @@ func (h userHandler) LoginIT(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipITFirstDigit); err != nil {
-		l.Error("error validating request body", zap.Error(err))
+	if err := req.validate(); err != nil {
 		return errBadRequest{err: err}
 	}
 
@@ -163,9 +166,7 @@ func (h userHandler) LoginNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipNurseFirstDigit); err != nil {
-		l.Error("error validating request body", zap.Error(err))
-
+	if err := req.validate(); err != nil {
 		return errBadRequest{err: err}
 	}
 
@@ -222,9 +223,14 @@ func (h userHandler) RegisterNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipNurseFirstDigit); err != nil {
+	if err := req.validate(); err != nil {
 		l.Error("error validating request body", zap.Error(err))
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		l.Error("Invalid NIP", zap.String("NIP", string(*req.NIP)))
+		return errBadRequest{err: new(domain.ErrInvalidNIP)}
 	}
 
 	user := domain.UserAcquire()
@@ -276,8 +282,7 @@ func (h userHandler) UpdateNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err = req.validate(nipNurseFirstDigit); err != nil {
-		l.Error("error validating request body", zap.Error(err))
+	if err = req.validate(); err != nil {
 		return errBadRequest{err: err}
 	}
 
@@ -433,7 +438,7 @@ func (h userHandler) GetUsers(c *fiber.Ctx) error {
 		userRes.UserID = user.ID
 		userRes.NIP = nip(user.NIP)
 		userRes.Name = user.Name
-		userRes.CreatedAt = user.CreatedAt.Format(time.DateOnly)
+		userRes.CreatedAt = user.CreatedAt.Format(dateFormat)
 
 		usersRes = append(usersRes, *userRes)
 	}

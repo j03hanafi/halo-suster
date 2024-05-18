@@ -17,6 +17,8 @@ import (
 	"github.com/j03hanafi/halo-suster/internal/domain"
 )
 
+const dateFormat = "2006-01-02T15:04:05.999Z"
+
 type errBadRequest struct {
 	err error
 }
@@ -137,7 +139,7 @@ func (r *recordPatientReq) validate() error {
 	if r.BirthDate == "" {
 		errs = multierr.Append(errs, errors.New("birthDate is required"))
 	} else {
-		if birthDate, err := time.Parse("2006-01-02T15:04:05.999Z", r.BirthDate); err != nil {
+		if birthDate, err := time.Parse(dateFormat, r.BirthDate); err != nil {
 			errs = multierr.Append(errs, errors.New("birthDate must be in format yyyy-mm-dd"))
 		} else {
 			r.birthDate = birthDate
@@ -334,7 +336,7 @@ type createdBy struct {
 }
 
 type getRecordRes struct {
-	IdentityDetail identityDetail `json:"identityDetail:"`
+	IdentityDetail identityDetail `json:"identityDetail"`
 	Symptoms       string         `json:"symptoms"`
 	Medications    string         `json:"medications"`
 	CreatedAt      string         `json:"createdAt"`
