@@ -24,12 +24,10 @@ func NewImageHandler(router fiber.Router, jwtMiddleware fiber.Handler, imageServ
 }
 
 func (h imageHandler) UploadImage(c *fiber.Ctx) error {
-	callerInfo := "[imageHandler.UpdateImage]"
+	callerInfo := "[imageHandler.UploadImage]"
 
 	userCtx := c.UserContext()
 	l := logger.FromCtx(userCtx).With(zap.String("caller", callerInfo))
-
-	l.Debug("body", zap.Any("body", c.Body()))
 
 	// Get file
 	file, err := c.FormFile("file")

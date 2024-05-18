@@ -27,6 +27,9 @@ func Run() {
 
 	s3 := adapter.GetS3Client()
 
+	jwtCache := adapter.GetJWTCache()
+	defer jwtCache.Flush()
+
 	serverTimeout := time.Duration(configs.Get().API.Timeout) * time.Second
 	serverConfig := fiber.Config{
 		AppName:                   configs.Get().App.Name,
@@ -70,7 +73,7 @@ func Run() {
 
 	app := fiber.New(serverConfig)
 	setMiddlewares(app)
-	application.New(app, db, s3, jwtMiddleware())
+	application.New(app, db, s3, jwtCache, jwtMiddleware(jwtCache))
 	l.Debug("Server Config", zap.Any("Config", app.Config()))
 
 	go func() {

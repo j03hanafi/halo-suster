@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gofiber/contrib/fiberzap/v2"
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -11,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 
 	"github.com/j03hanafi/halo-suster/common/configs"
@@ -86,8 +88,21 @@ func loggerMiddleware() fiber.Handler {
 	}
 }
 
-func jwtMiddleware() fiber.Handler {
+func jwtMiddleware(jwtCache *cache.Cache) fiber.Handler {
 	return jwtware.New(jwtware.Config{
+		Filter: func(c *fiber.Ctx) bool {
+			token := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
+			if token == "" {
+				return false
+			}
+			user, found := jwtCache.Get(token)
+			if !found {
+				return false
+			}
+
+			c.Locals(domain.UserFromToken, user.(domain.User))
+			return true
+		},
 		SigningKey: jwtware.SigningKey{
 			JWTAlg: jwtware.HS256,
 			Key:    []byte(configs.Get().JWT.JWTSecret),
@@ -95,13 +110,21 @@ func jwtMiddleware() fiber.Handler {
 		Claims:     &security.AccessTokenClaims{},
 		ContextKey: accessToken,
 		SuccessHandler: func(c *fiber.Ctx) error {
-			claims := c.Locals(accessToken).(*jwt.Token).Claims.(*security.AccessTokenClaims)
+			token := c.Locals(accessToken).(*jwt.Token)
+			claims := token.Claims.(*security.AccessTokenClaims)
 			user := domain.User{
 				ID:   claims.User.UserID,
 				NIP:  claims.User.NIP,
 				Name: claims.User.Name,
 				Role: claims.User.Role,
 			}
+
+			exp, _ := claims.GetExpirationTime()
+			cacheExp := time.Until(exp.Time) - time.Minute
+			if cacheExp > 0 {
+				jwtCache.Set(token.Raw, user, cacheExp)
+			}
+
 			c.Locals(domain.UserFromToken, user)
 			return c.Next()
 		},

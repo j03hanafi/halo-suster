@@ -286,10 +286,6 @@ func (h userHandler) UpdateNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
-		return new(domain.ErrInvalidNIP)
-	}
-
 	user := domain.UserAcquire()
 	defer domain.UserRelease(user)
 
@@ -451,8 +447,15 @@ func (h userHandler) GetUsers(c *fiber.Ctx) error {
 func itStaffAccess(c *fiber.Ctx) error {
 	user := domain.UserAcquire()
 	defer domain.UserRelease(user)
-	*user = c.Locals(domain.UserFromToken).(domain.User)
 
+	userFromToken := c.Locals(domain.UserFromToken)
+	if userFromToken == nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized access",
+		})
+	}
+
+	*user = userFromToken.(domain.User)
 	if user.Role != domain.RoleIT {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized access",

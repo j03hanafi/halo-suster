@@ -13,4 +13,5 @@ type UserRepositoryContract interface {
 	DeleteNurse(ctx context.Context, user *domain.User) error
 	UpdateAccess(ctx context.Context, user *domain.User) error
 	GetUsers(ctx context.Context, filter *domain.FilterUser, users domain.Users) (domain.Users, error)
+	SaveJWTCache(ctx context.Context, token string, user *domain.User)
 }
