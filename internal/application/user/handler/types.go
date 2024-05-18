@@ -21,6 +21,7 @@ import (
 const (
 	nipITFirstDigit    = "615"
 	nipNurseFirstDigit = "303"
+	dateFormat         = "2006-01-02T15:04:05.999Z"
 )
 
 type errBadRequest struct {
@@ -58,6 +59,10 @@ type baseResponse struct {
 type nip string
 
 func (n *nip) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return errors.New("nip is required")
+	}
+
 	var jsonNIP int
 	if err := json.Unmarshal(b, &jsonNIP); err != nil {
 		return errors.New("nip must be a number")
@@ -74,7 +79,7 @@ func (n *nip) MarshalJSON() ([]byte, error) {
 	return json.Marshal(jsonNIP)
 }
 
-func (n *nip) validate(firstDigit string) error {
+func (n *nip) validate() error {
 	var errs error
 	const nipLength = 15
 
@@ -83,8 +88,11 @@ func (n *nip) validate(firstDigit string) error {
 		return errs
 	}
 
-	if string(*n)[:3] != firstDigit {
-		errs = multierr.Append(errs, fmt.Errorf("nip must have %s in the first three characters", firstDigit))
+	if string(*n)[:3] != nipITFirstDigit && string(*n)[:3] != nipNurseFirstDigit {
+		errs = multierr.Append(
+			errs,
+			fmt.Errorf("nip must have %s/%s in the first three characters", nipITFirstDigit, nipNurseFirstDigit),
+		)
 	}
 
 	if string(*n)[3:4] != "1" && string(*n)[3:4] != "2" {
@@ -129,13 +137,13 @@ type registerITReq struct {
 	Password string `json:"password"`
 }
 
-func (r registerITReq) validate(nipCheck string) error {
+func (r registerITReq) validate() error {
 	var errs error
 
 	if r.NIP == nil {
 		errs = multierr.Append(errs, errors.New("nip is required"))
 	} else {
-		err := r.NIP.validate(nipCheck)
+		err := r.NIP.validate()
 		if err != nil {
 			errs = multierr.Append(errs, err)
 		}
@@ -202,13 +210,13 @@ type loginReq struct {
 	Password string `json:"password"`
 }
 
-func (r loginReq) validate(nipCheck string) error {
+func (r loginReq) validate() error {
 	var errs error
 
 	if r.NIP == nil {
 		errs = multierr.Append(errs, errors.New("nip is required"))
 	} else {
-		err := r.NIP.validate(nipCheck)
+		err := r.NIP.validate()
 		if err != nil {
 			errs = multierr.Append(errs, err)
 		}
@@ -248,13 +256,13 @@ type registerNurseReq struct {
 	ImgURL string `json:"identityCardScanImg"`
 }
 
-func (r registerNurseReq) validate(nipCheck string) error {
+func (r registerNurseReq) validate() error {
 	var errs error
 
 	if r.NIP == nil {
 		errs = multierr.Append(errs, errors.New("nip is required"))
 	} else {
-		err := r.NIP.validate(nipCheck)
+		err := r.NIP.validate()
 		if err != nil {
 			errs = multierr.Append(errs, err)
 		}
@@ -307,13 +315,13 @@ type updateNurseReq struct {
 	Name string `json:"name"`
 }
 
-func (r updateNurseReq) validate(nipCheck string) error {
+func (r updateNurseReq) validate() error {
 	var errs error
 
 	if r.NIP == nil {
 		errs = multierr.Append(errs, errors.New("nip is required"))
 	} else {
-		err := r.NIP.validate(nipCheck)
+		err := r.NIP.validate()
 		if err != nil {
 			errs = multierr.Append(errs, err)
 		}

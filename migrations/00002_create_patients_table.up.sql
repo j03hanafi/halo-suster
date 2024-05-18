@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS patients
 
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
+CREATE INDEX IF NOT EXISTS idx_patients_id_hash ON patients USING hash (id);
 CREATE INDEX IF NOT EXISTS idx_patients_name ON patients USING gin (name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_patients_phone_number ON patients (phone_number varchar_pattern_ops);
 CREATE INDEX IF NOT EXISTS idx_patients_created_at_asc ON patients (created_at ASC);

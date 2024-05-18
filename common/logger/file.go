@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"runtime/debug"
 	"time"
 
 	"go.uber.org/zap"
@@ -21,8 +20,6 @@ const (
 
 	samplerFirst      = 100
 	samplerThereafter = 100
-
-	maxGitRevisionLength = 7
 )
 
 func setFileLogger() (zapcore.Core, []zap.Option) {
@@ -41,37 +38,15 @@ func setFileLogger() (zapcore.Core, []zap.Option) {
 	}
 
 	config := zap.NewProductionEncoderConfig()
-	config.TimeKey = "timestamp"
-	config.EncodeTime = zapcore.ISO8601TimeEncoder
+	config.TimeKey = ""
+	config.CallerKey = ""
 
 	encoder := zapcore.NewJSONEncoder(config)
 
 	logLevel := zap.NewAtomicLevelAt(zap.ErrorLevel)
-	if configs.Get().App.DebugMode {
-		logLevel = zap.NewAtomicLevelAt(zap.WarnLevel)
-	}
 	options := make([]zap.Option, 0)
 
-	var gitRevision, goVersion string
-	buildInfo, ok := debug.ReadBuildInfo()
-	if ok {
-		for _, v := range buildInfo.Settings {
-			if v.Key == "vcs.revision" {
-				gitRevision = v.Value
-				if len(gitRevision) > maxGitRevisionLength {
-					gitRevision = gitRevision[:maxGitRevisionLength]
-				}
-				break
-			}
-		}
-		goVersion = buildInfo.GoVersion
-	}
-
-	core := zapcore.NewCore(encoder, bufferedWriter, logLevel).
-		With([]zap.Field{
-			zap.String("gitRevision", gitRevision),
-			zap.String("goVersion", goVersion),
-		})
+	core := zapcore.NewCore(encoder, bufferedWriter, logLevel)
 
 	return zapcore.NewSamplerWithOptions(core, time.Second, samplerFirst, samplerThereafter), options
 }

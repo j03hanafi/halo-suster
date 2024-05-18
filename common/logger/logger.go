@@ -6,6 +6,8 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/j03hanafi/halo-suster/common/configs"
 )
 
 type ctxKey struct{}
@@ -27,10 +29,12 @@ func Get() *zap.Logger {
 		fileCore, fileOpts := setFileLogger()
 		options = append(options, fileOpts...)
 
-		core := zapcore.NewTee(
-			consoleCore,
-			fileCore,
-		)
+		var core zapcore.Core
+		if configs.Get().App.DebugMode {
+			core = zapcore.NewTee(consoleCore, fileCore)
+		} else {
+			core = zapcore.NewTee(consoleCore)
+		}
 
 		logger = zap.New(core, options...)
 	})

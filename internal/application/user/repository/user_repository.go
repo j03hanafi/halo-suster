@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 
 	"github.com/j03hanafi/halo-suster/common/id"
@@ -18,11 +19,12 @@ import (
 )
 
 type UserRepository struct {
-	db *pgxpool.Pool
+	db       *pgxpool.Pool
+	jwtCache *cache.Cache
 }
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *pgxpool.Pool, jwtCache *cache.Cache) *UserRepository {
+	return &UserRepository{db: db, jwtCache: jwtCache}
 }
 
 func (r UserRepository) Register(ctx context.Context, user *domain.User) error {
@@ -101,7 +103,7 @@ func (r UserRepository) UpdateNurse(ctx context.Context, user *domain.User) erro
 	callerInfo := "[UserRepository.UpdateNurse]"
 	l := logger.FromCtx(ctx).With(zap.String("caller", callerInfo))
 
-	updateQuery := `UPDATE users SET nip = @nip, name = @name WHERE id = @id`
+	updateQuery := `UPDATE users SET nip = @nip, name = @name WHERE id = @id AND nip LIKE '303%'`
 	args := pgx.NamedArgs{
 		"id":   user.ID,
 		"nip":  user.NIP,
@@ -260,6 +262,16 @@ func (r UserRepository) filterUser(filter *domain.FilterUser) (string, pgx.Named
 	}
 
 	return queryConditions, params
+}
+
+func (r UserRepository) SaveJWTCache(_ context.Context, token string, user *domain.User) {
+	userClaim := domain.User{
+		ID:   user.ID,
+		NIP:  user.NIP,
+		Name: user.Name,
+		Role: user.Role,
+	}
+	r.jwtCache.Set(token, userClaim, 0)
 }
 
 var _ UserRepositoryContract = (*UserRepository)(nil)

@@ -60,6 +60,8 @@ func (s UserService) GenerateToken(ctx context.Context, user *domain.User) (stri
 		return "", err
 	}
 
+	s.userRepository.SaveJWTCache(ctx, token, user)
+
 	return token, nil
 }
 

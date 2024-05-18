@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/oklog/ulid/v2"
@@ -27,7 +26,7 @@ func NewUserHandler(router fiber.Router, jwtMiddleware fiber.Handler, userServic
 	authRouter.Post("/it/register", handler.RegisterIT)
 	authRouter.Post("/it/login", handler.LoginIT)
 	authRouter.Post("/nurse/login", handler.LoginNurse)
-	authRouter.Get("/", jwtMiddleware, itStaffAccess, handler.GetUsers)
+	authRouter.Get("", jwtMiddleware, itStaffAccess, handler.GetUsers)
 
 	nurseRouter := router.Group("/user/nurse", jwtMiddleware, itStaffAccess)
 	nurseRouter.Post("/register", handler.RegisterNurse)
@@ -50,9 +49,14 @@ func (h userHandler) RegisterIT(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipITFirstDigit); err != nil {
+	if err := req.validate(); err != nil {
 		l.Error("error validating request body", zap.Error(err))
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipITFirstDigit) {
+		l.Error("Invalid NIP", zap.String("NIP", string(*req.NIP)))
+		return errBadRequest{err: new(domain.ErrInvalidNIP)}
 	}
 
 	user := domain.UserAcquire()
@@ -105,12 +109,12 @@ func (h userHandler) LoginIT(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipITFirstDigit); err != nil {
-		l.Error("error validating request body", zap.Error(err))
-		if !strings.HasPrefix(string(*req.NIP), nipITFirstDigit) {
-			return new(domain.ErrInvalidNIP)
-		}
+	if err := req.validate(); err != nil {
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipITFirstDigit) {
+		return new(domain.ErrInvalidNIP)
 	}
 
 	user := domain.UserAcquire()
@@ -162,12 +166,12 @@ func (h userHandler) LoginNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipNurseFirstDigit); err != nil {
-		l.Error("error validating request body", zap.Error(err))
-		if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
-			return new(domain.ErrInvalidNIP)
-		}
+	if err := req.validate(); err != nil {
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		return new(domain.ErrInvalidNIP)
 	}
 
 	user := domain.UserAcquire()
@@ -219,9 +223,14 @@ func (h userHandler) RegisterNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err := req.validate(nipNurseFirstDigit); err != nil {
+	if err := req.validate(); err != nil {
 		l.Error("error validating request body", zap.Error(err))
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		l.Error("Invalid NIP", zap.String("NIP", string(*req.NIP)))
+		return errBadRequest{err: new(domain.ErrInvalidNIP)}
 	}
 
 	user := domain.UserAcquire()
@@ -273,12 +282,12 @@ func (h userHandler) UpdateNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
-	if err = req.validate(nipNurseFirstDigit); err != nil {
-		l.Error("error validating request body", zap.Error(err))
-		if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
-			return new(domain.ErrInvalidNIP)
-		}
+	if err = req.validate(); err != nil {
 		return errBadRequest{err: err}
+	}
+
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		return new(domain.ErrInvalidNIP)
 	}
 
 	user := domain.UserAcquire()
@@ -429,7 +438,7 @@ func (h userHandler) GetUsers(c *fiber.Ctx) error {
 		userRes.UserID = user.ID
 		userRes.NIP = nip(user.NIP)
 		userRes.Name = user.Name
-		userRes.CreatedAt = user.CreatedAt.Format(time.DateOnly)
+		userRes.CreatedAt = user.CreatedAt.Format(dateFormat)
 
 		usersRes = append(usersRes, *userRes)
 	}
@@ -442,8 +451,15 @@ func (h userHandler) GetUsers(c *fiber.Ctx) error {
 func itStaffAccess(c *fiber.Ctx) error {
 	user := domain.UserAcquire()
 	defer domain.UserRelease(user)
-	*user = c.Locals(domain.UserFromToken).(domain.User)
 
+	userFromToken := c.Locals(domain.UserFromToken)
+	if userFromToken == nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized access",
+		})
+	}
+
+	*user = userFromToken.(domain.User)
 	if user.Role != domain.RoleIT {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized access",

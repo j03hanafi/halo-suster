@@ -17,7 +17,7 @@ func setConsoleLogger() (zapcore.Core, []zap.Option) {
 
 	encoder := zapcore.NewConsoleEncoder(config)
 
-	logLevel := zap.NewAtomicLevelAt(zap.InfoLevel)
+	logLevel := zap.NewAtomicLevelAt(zap.WarnLevel)
 
 	if configs.Get().App.DebugMode {
 		logLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
