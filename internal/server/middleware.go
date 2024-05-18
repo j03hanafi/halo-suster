@@ -14,6 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/j03hanafi/halo-suster/common/configs"
 	"github.com/j03hanafi/halo-suster/common/id"
@@ -66,6 +67,7 @@ func zapMiddleware() fiber.Handler {
 		SkipBody: func(c *fiber.Ctx) bool {
 			return strings.HasSuffix(c.Path(), "image")
 		},
+		Levels: []zapcore.Level{zapcore.ErrorLevel, zapcore.ErrorLevel, zapcore.InfoLevel},
 	})
 }
 

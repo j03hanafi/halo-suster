@@ -172,5 +172,5 @@ func (e ErrPatientNotFound) Error() string {
 }
 
 func (e ErrPatientNotFound) Status() int {
-	return http.StatusBadRequest
+	return http.StatusNotFound
 }

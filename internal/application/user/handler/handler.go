@@ -286,6 +286,10 @@ func (h userHandler) UpdateNurse(c *fiber.Ctx) error {
 		return errBadRequest{err: err}
 	}
 
+	if !strings.HasPrefix(string(*req.NIP), nipNurseFirstDigit) {
+		return new(domain.ErrInvalidNIP)
+	}
+
 	user := domain.UserAcquire()
 	defer domain.UserRelease(user)
 
